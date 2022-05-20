@@ -6,6 +6,7 @@ import matplotlib.lines as mlines
 from cartopy.feature import ShapelyFeature
 import geocoder #Library which gets user LatLong through google API. Uses Requests and Ratelim as dependencies
 import tkinter as tkk
+from shapely.ops import nearest_points
 
 #----------1.0 Import Shapefiles----------#
 outline = gpd.read_file('data/NIoutline/NI_outline.shp') #Outline of Northern Ireland for Reference
@@ -22,8 +23,18 @@ mclocation.plot(ax=ax, marker='o', color='red', markersize=5)
 #The intention here is to have a flow where you will be given a prompt to choose either
 #Geolocation or custom Lat/Long, then the window closes and a ndew one opens with relevant prompts. Then the map generates
 #based on that
-def nearestMc():
-    dist = {r[0]: r[1].geometry.distance(br_geom) for r in points.iterrows()}
+
+#union McLocation for nearest point. This has been an enourmous headache and I've spent multiple hours on this one function
+def nearMC():
+    pts3 = mclocation.geometry.unary_union
+    def near(point, pts=pts3):
+        # find the nearest point
+        nearest = mclocation.geometry == nearest_points(point, pts)[1]
+    gdf['Nearest'] = gdf.apply(lambda row: near(row.geometry), axis=1)
+    gdf
+    for i, row in gdf.iterrows():
+        nearestDF=pd.DataFrame({'point1':(nearest_points(row.geometry, pts3)[0], nearest_points(row.geometry, pts3)[1])
+    return
 #----------2.1 Importing user Location for Point----------#
 
 #This functions obtains the users lat/long from GeoCoder as a list
@@ -31,15 +42,17 @@ def nearestMc():
 #The Coordinates are then plotted as a blue point on the map
 #The function then closes the dialogue window, and plots the map.
 def userGeoLoc():
+    global gdf
     g = geocoder.ip('me')
     userloc = g.latlng
     userdf = pd.DataFrame({'Longitude': userloc[1], 'Latitude':userloc[0]}, index=[0])
     gdf = gpd.GeoDataFrame(userdf, geometry=gpd.points_from_xy(userdf.Longitude, userdf.Latitude, crs=myCRS))
     gdf.plot(ax=ax, marker='o', color='blue', markersize=7)
+    nearMC()
     global root
     root.destroy()
     plt.show()
-    print(nearestMc())
+    print(nearMC())
     return gdf
 
 #----------2.2 Taking User Submission for point---------->
@@ -90,4 +103,3 @@ uGLButt.grid(row=1, column=0)
 LaLoButt.grid(row=1, column=1)
 
 root.mainloop()
-#----------Distance calculation----------#
