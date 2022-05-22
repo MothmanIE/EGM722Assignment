@@ -1,10 +1,4 @@
 # EGM722Assignment
- - Introduction
-The nearestMC tool is a program which locates the nearest McDonalds in Northern Ireland relative to the user prescribed Latitude Longitude Coordinates.
-The user has the choice of having the program use their own coordinates through the use of Geocoder APIs, or to enter a customised Latitude/Longitude coordinate.
-Once the user coordinate is determined, a straight line is drawn between the user point and the nearest McDonalds, and is displayed on a Map.
-The GitHub Repository for this Assignment can be found at https://github.com/MothmanIE/EGM722Assignment .
-
 Setup
  - Prerequisites
 In order to setup this application, the user must first install Git, found at https://git-scm.com/.
