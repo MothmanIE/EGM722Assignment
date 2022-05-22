@@ -1,12 +1,15 @@
+import geopandas
 import geopandas as gpd
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from cartopy.feature import ShapelyFeature
+from shapely.geometry import LineString
 import geocoder #Library which gets user LatLong through google API. Uses Requests and Ratelim as dependencies
 import tkinter as tkk
 from shapely.ops import nearest_points
+import numpy as np
 
 #----------1.0 Import Shapefiles----------#
 outline = gpd.read_file('data/NIoutline/NI_outline.shp') #Outline of Northern Ireland for Reference
@@ -24,17 +27,20 @@ mclocation.plot(ax=ax, marker='o', color='red', markersize=5)
 #Geolocation or custom Lat/Long, then the window closes and a ndew one opens with relevant prompts. Then the map generates
 #based on that
 
-#union McLocation for nearest point. This has been an enourmous headache and I've spent multiple hours on this one function
+#union McLocation for nearest point. This took about 3 days to get working alone.
 def nearMC():
     pts3 = mclocation.geometry.unary_union
     def near(point, pts=pts3):
         # find the nearest point
         nearest = mclocation.geometry == nearest_points(point, pts)[1]
+        print('Your Nearest McDonalds in Northern Ireland: ', mclocation[nearest].POSTCODE)
+        return mclocation[nearest].POSTCODE.to_numpy()[0]
     gdf['Nearest'] = gdf.apply(lambda row: near(row.geometry), axis=1)
-    gdf
     for i, row in gdf.iterrows():
-        nearestDF=pd.DataFrame({'point1':(nearest_points(row.geometry, pts3)[0], nearest_points(row.geometry, pts3)[1])
-    return
+        nearestDF=[nearest_points(row.geometry, pts3)[0], nearest_points(row.geometry, pts3)[1]]
+        geom = LineString(nearestDF)
+        gdfNear = geopandas.GeoDataFrame(geometry=[geom]);
+    return gdfNear
 #----------2.1 Importing user Location for Point----------#
 
 #This functions obtains the users lat/long from GeoCoder as a list
@@ -48,11 +54,10 @@ def userGeoLoc():
     userdf = pd.DataFrame({'Longitude': userloc[1], 'Latitude':userloc[0]}, index=[0])
     gdf = gpd.GeoDataFrame(userdf, geometry=gpd.points_from_xy(userdf.Longitude, userdf.Latitude, crs=myCRS))
     gdf.plot(ax=ax, marker='o', color='blue', markersize=7)
-    nearMC()
+    nearMC().plot(ax=ax, color='blue')
     global root
     root.destroy()
     plt.show()
-    print(nearMC())
     return gdf
 
 #----------2.2 Taking User Submission for point---------->
@@ -62,6 +67,7 @@ def userManualEntry():
     window = tkk.Toplevel(root)
     #Nested function for registering user input and generating map
     def genMapLaLo():
+        global gdf
         UserLat = EnterLat.get()
         UserLong = EnterLong.get()
         print(UserLat)
@@ -71,6 +77,7 @@ def userManualEntry():
         userdf = pd.DataFrame({'Longitude': UserLong, 'Latitude':UserLat}, index=[0])
         gdf = gpd.GeoDataFrame(userdf, geometry=gpd.points_from_xy(userdf.Longitude, userdf.Latitude, crs=myCRS))
         gdf.plot(ax=ax, marker='o', color='blue', markersize=7)
+        nearMC().plot(ax=ax, color='blue')
 
         plt.show()
 
