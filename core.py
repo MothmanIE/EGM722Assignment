@@ -23,7 +23,7 @@ outline.plot(ax=ax, color='white', edgecolor='black')
 mclocation.plot(ax=ax, marker='o', color='red', markersize=5)
 
 #----------2.0 Primary functions----------#
-#----------2.1 Fine Line from User to nearest McDonalds----------#
+#----------2.1 Find Line from User to nearest McDonalds----------#
 
 #union McLocation for nearest point. This took about 3 days to get working alone.
 def nearMC():
